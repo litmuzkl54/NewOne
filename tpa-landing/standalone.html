@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TPA LLC - Book a Meeting</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; color:#1e293b; line-height:1.6; background:#fff; -webkit-font-smoothing:antialiased; }
+html { scroll-behavior:smooth; }
+
+/* Header */
+.header { background:#fff; border-bottom:1px solid #e2e8f0; position:sticky; top:0; z-index:100; }
+.header-inner { max-width:1100px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon { background:linear-gradient(135deg,#1a56db,#1e40af); color:#fff; font-weight:800; font-size:14px; padding:8px 12px; border-radius:8px; letter-spacing:1px; }
+.logo-text { font-weight:700; font-size:20px; color:#1e293b; }
+.nav { display:flex; align-items:center; gap:24px; }
+.nav a { text-decoration:none; color:#475569; font-weight:500; font-size:15px; transition:color .2s; }
+.nav a:hover { color:#1a56db; }
+.nav-cta { background:#1a56db !important; color:#fff !important; padding:10px 20px; border-radius:8px; transition:background .2s !important; }
+.nav-cta:hover { background:#1e40af !important; }
+
+/* Hero */
+.hero { background:linear-gradient(135deg,#1a56db 0%,#1e3a8a 100%); color:#fff; padding:80px 24px; text-align:center; }
+.hero-inner { max-width:720px; margin:0 auto; }
+.hero-title { font-size:44px; font-weight:800; line-height:1.15; margin-bottom:20px; }
+.hero-title .highlight { color:#93c5fd; }
+.hero-subtitle { font-size:18px; line-height:1.7; color:#cbd5e1; margin-bottom:36px; }
+.hero-cta { display:inline-block; background:#fff; color:#1a56db; font-weight:700; font-size:17px; padding:16px 40px; border-radius:10px; text-decoration:none; transition:transform .2s,box-shadow .2s; }
+.hero-cta:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
+
+/* Booking */
+.booking { padding:64px 24px; background:#f8fafc; }
+.booking-inner { max-width:800px; margin:0 auto; }
+.booking-title { text-align:center; font-size:32px; font-weight:800; color:#1e293b; margin-bottom:8px; }
+.booking-subtitle { text-align:center; color:#64748b; font-size:16px; margin-bottom:40px; }
+
+/* Steps Indicator */
+.steps-indicator { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:36px; }
+.step-dot { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.step-dot span { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; background:#e2e8f0; color:#94a3b8; transition:all .3s; }
+.step-dot.active span { background:#1a56db; color:#fff; }
+.step-dot.done span { background:#16a34a; color:#fff; }
+.step-dot label { font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.5px; }
+.step-dot.active label { color:#1a56db; }
+.step-dot.done label { color:#16a34a; }
+.step-line { width:48px; height:2px; background:#e2e8f0; margin-bottom:22px; }
+
+/* Date Grid */
+.date-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:10px; }
+.date-card { display:flex; flex-direction:column; align-items:center; padding:14px 8px; border:2px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; transition:all .2s; gap:2px; font-family:inherit; font-size:inherit; }
+.date-card:hover { border-color:#1a56db; background:#eff6ff; }
+.date-card.selected { border-color:#1a56db; background:#1a56db; color:#fff; }
+.date-weekday { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#64748b; }
+.date-card.selected .date-weekday, .date-card.selected .date-month { color:#bfdbfe; }
+.date-day { font-size:22px; font-weight:800; }
+.date-month { font-size:13px; color:#64748b; }
+
+/* Time Grid */
+.time-step { animation:fadeUp .3s ease; }
+.time-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.time-card { padding:14px; border:2px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; font-weight:600; font-size:15px; color:#1e293b; transition:all .2s; position:relative; font-family:inherit; }
+.time-card:hover:not(:disabled) { border-color:#1a56db; background:#eff6ff; }
+.time-card.selected { border-color:#1a56db; background:#1a56db; color:#fff; }
+.time-card.booked { background:#f1f5f9; border-color:#e2e8f0; color:#94a3b8; cursor:not-allowed; text-decoration:line-through; }
+.booked-label { display:block; font-size:11px; font-weight:400; color:#94a3b8; margin-top:2px; }
+.back-btn { background:none; border:none; color:#1a56db; font-weight:600; font-size:14px; cursor:pointer; padding:0; margin-bottom:16px; font-family:inherit; }
+.back-btn:hover { text-decoration:underline; }
+.selected-date-label { font-size:18px; font-weight:700; color:#1e293b; margin-bottom:16px; }
+
+/* Form */
+.form-step { animation:fadeUp .3s ease; }
+.selection-summary { display:flex; align-items:center; gap:8px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:14px 20px; margin-bottom:28px; font-weight:600; color:#1e40af; flex-wrap:wrap; }
+.dot { color:#93c5fd; }
+.contact-form { display:flex; flex-direction:column; gap:20px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label { font-weight:600; font-size:14px; color:#334155; }
+.form-group input { padding:12px 16px; border:2px solid #e2e8f0; border-radius:8px; font-size:15px; font-family:inherit; transition:border-color .2s; }
+.form-group input:focus { outline:none; border-color:#1a56db; }
+.form-group input.error { border-color:#dc2626; }
+.field-error { font-size:13px; color:#dc2626; font-weight:500; }
+.submit-error { background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:12px 16px; border-radius:8px; font-size:14px; font-weight:500; }
+.submit-btn { background:linear-gradient(135deg,#1a56db,#1e40af); color:#fff; border:none; padding:16px; border-radius:10px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; transition:transform .2s,box-shadow .2s; }
+.submit-btn:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(26,86,219,.3); }
+
+/* Confirmation */
+.confirmation { text-align:center; animation:fadeUp .4s ease; }
+.confirm-icon { width:64px; height:64px; background:#16a34a; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 20px; }
+.confirmation h3 { font-size:28px; font-weight:800; color:#1e293b; margin-bottom:8px; }
+.confirmation > p { color:#64748b; margin-bottom:24px; }
+.confirm-details { background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; margin-bottom:20px; text-align:left; }
+.confirm-row { display:flex; justify-content:space-between; padding:14px 20px; border-bottom:1px solid #f1f5f9; }
+.confirm-row:last-child { border-bottom:none; }
+.confirm-label { color:#64748b; font-weight:500; }
+.confirm-note { font-size:14px; color:#64748b; margin-bottom:20px; }
+
+/* Footer */
+.footer { background:#1e293b; color:#94a3b8; padding:24px; text-align:center; font-size:14px; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width:768px) {
+  .hero { padding:56px 20px; }
+  .hero-title { font-size:30px; }
+  .hero-subtitle { font-size:16px; }
+}
+@media (max-width:600px) {
+  .header-inner { padding:12px 16px; }
+  .nav a:not(.nav-cta) { display:none; }
+  .logo-text { font-size:17px; }
+  .booking { padding:40px 16px; }
+  .booking-title { font-size:24px; }
+  .date-grid { grid-template-columns:repeat(auto-fill,minmax(75px,1fr)); }
+  .time-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ---- In-memory booking store ----
+const submissions = [];
+const bookedSlots = new Set();
+
+function getBookedSlots() { return new Set(bookedSlots); }
+function isSlotBooked(key) { return bookedSlots.has(key); }
+
+function bookSlot(submission) {
+  const key = submission.date + '_' + submission.time;
+  if (bookedSlots.has(key)) {
+    return { success: false, error: 'This time slot has already been booked.' };
+  }
+  const record = {
+    id: submissions.length + 1,
+    timestamp: new Date().toISOString(),
+    name: submission.name,
+    email: submission.email,
+    company: submission.company,
+    phone: submission.phone,
+    meetingDate: submission.date,
+    meetingTime: submission.time,
+  };
+  submissions.push(record);
+  bookedSlots.add(key);
+  return { success: true, record };
+}
+
+// ---- Helpers ----
+function generateDates() {
+  const dates = [];
+  const now = new Date();
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    if (d.getDay() >= 1 && d.getDay() <= 5) dates.push(d);
+  }
+  return dates;
+}
+
+function generateTimeSlots() {
+  const slots = [];
+  for (let h = 9; h < 16; h++) {
+    slots.push(h.toString().padStart(2,'0') + ':00');
+    slots.push(h.toString().padStart(2,'0') + ':30');
+  }
+  return slots;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+}
+
+function formatDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatTimeDisplay(time) {
+  const [h,m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return hour + ':' + m.toString().padStart(2,'0') + ' ' + ampm;
+}
+
+function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function validatePhone(p) { const d = p.replace(/\D/g,''); return d.length >= 7 && d.length <= 15; }
+
+// ---- Components ----
+function Header() {
+  return (
+    <header className="header">
+      <div className="header-inner">
+        <div className="logo">
+          <span className="logo-icon">TPA</span>
+          <span className="logo-text">TPA LLC</span>
+        </div>
+        <nav className="nav">
+          <a href="#about">About</a>
+          <a href="#book" className="nav-cta">Book a Meeting</a>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="hero">
+      <div className="hero-inner">
+        <h1 className="hero-title">
+          Partner with <span className="highlight">TPA LLC</span> for Your Business Success
+        </h1>
+        <p className="hero-subtitle">
+          We deliver strategic consulting and technology solutions that drive
+          measurable results. Schedule a free 30-minute consultation to discuss
+          how we can help your organization grow.
+        </p>
+        <a href="#book" className="hero-cta">Book a Meeting</a>
+      </div>
+    </section>
+  );
+}
+
+function BookingSection() {
+  const [step, setStep] = useState(1);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [form, setForm] = useState({ name:'', email:'', company:'', phone:'' });
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submittedRecord, setSubmittedRecord] = useState(null);
+
+  const dates = useMemo(generateDates, []);
+  const timeSlots = useMemo(generateTimeSlots, []);
+
+  function handleDateSelect(d) { setSelectedDate(d); setSelectedTime(null); setStep(2); }
+  function handleTimeSelect(t) { setSelectedTime(t); setStep(3); }
+
+  function handleInputChange(e) {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => { const n = {...prev}; delete n[name]; return n; });
+  }
+
+  function validate() {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Name is required.';
+    if (!form.email.trim()) errs.email = 'Email is required.';
+    else if (!validateEmail(form.email)) errs.email = 'Enter a valid email address.';
+    if (!form.company.trim()) errs.company = 'Company is required.';
+    if (!form.phone.trim()) errs.phone = 'Phone number is required.';
+    else if (!validatePhone(form.phone)) errs.phone = 'Enter a valid phone number.';
+    return errs;
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitError('');
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    const result = bookSlot({ ...form, date: formatDateKey(selectedDate), time: selectedTime });
+    if (!result.success) { setSubmitError(result.error); return; }
+    setSubmittedRecord(result.record);
+    setStep(4);
+  }
+
+  function handleReset() {
+    setStep(1); setSelectedDate(null); setSelectedTime(null);
+    setForm({ name:'', email:'', company:'', phone:'' });
+    setErrors({}); setSubmitError(''); setSubmittedRecord(null);
+  }
+
+  const booked = getBookedSlots();
+
+  return (
+    <section className="booking" id="book">
+      <div className="booking-inner">
+        <h2 className="booking-title">Book a 30-Minute Consultation</h2>
+        <p className="booking-subtitle">Select a date and time that works for you. All times are in Eastern Time (EST/EDT).</p>
+
+        <div className="steps-indicator">
+          <div className={'step-dot' + (step>=1?' active':'') + (step>1?' done':'')}>
+            <span>1</span><label>Date</label>
+          </div>
+          <div className="step-line" />
+          <div className={'step-dot' + (step>=2?' active':'') + (step>2?' done':'')}>
+            <span>2</span><label>Time</label>
+          </div>
+          <div className="step-line" />
+          <div className={'step-dot' + (step>=3?' active':'') + (step>3?' done':'')}>
+            <span>3</span><label>Details</label>
+          </div>
+        </div>
+
+        {step === 1 && (
+          <div className="date-grid">
+            {dates.map(d => (
+              <button key={formatDateKey(d)}
+                className={'date-card' + (selectedDate && formatDateKey(selectedDate)===formatDateKey(d) ? ' selected' : '')}
+                onClick={() => handleDateSelect(d)}>
+                <span className="date-weekday">{d.toLocaleDateString('en-US',{weekday:'short'})}</span>
+                <span className="date-day">{d.getDate()}</span>
+                <span className="date-month">{d.toLocaleDateString('en-US',{month:'short'})}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="time-step">
+            <button className="back-btn" onClick={() => setStep(1)}>&larr; Back to dates</button>
+            <p className="selected-date-label">{formatDate(selectedDate)}</p>
+            <div className="time-grid">
+              {timeSlots.map(time => {
+                const key = formatDateKey(selectedDate) + '_' + time;
+                const isBooked = booked.has(key);
+                return (
+                  <button key={time}
+                    className={'time-card' + (isBooked ? ' booked' : '') + (selectedTime===time ? ' selected' : '')}
+                    disabled={isBooked}
+                    onClick={() => handleTimeSelect(time)}>
+                    {formatTimeDisplay(time)} ET
+                    {isBooked && <span className="booked-label">Booked</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="form-step">
+            <button className="back-btn" onClick={() => setStep(2)}>&larr; Back to times</button>
+            <div className="selection-summary">
+              <span>{formatDate(selectedDate)}</span>
+              <span className="dot">&middot;</span>
+              <span>{formatTimeDisplay(selectedTime)} ET</span>
+              <span className="dot">&middot;</span>
+              <span>30 min</span>
+            </div>
+            <form className="contact-form" onSubmit={handleSubmit} noValidate>
+              <div className="form-group">
+                <label htmlFor="name">Full Name *</label>
+                <input id="name" name="name" type="text" placeholder="John Smith" value={form.name} onChange={handleInputChange} className={errors.name?'error':''} />
+                {errors.name && <span className="field-error">{errors.name}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="email">Email Address *</label>
+                <input id="email" name="email" type="email" placeholder="john@company.com" value={form.email} onChange={handleInputChange} className={errors.email?'error':''} />
+                {errors.email && <span className="field-error">{errors.email}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="company">Company *</label>
+                <input id="company" name="company" type="text" placeholder="Acme Inc." value={form.company} onChange={handleInputChange} className={errors.company?'error':''} />
+                {errors.company && <span className="field-error">{errors.company}</span>}
+              </div>
+              <div className="form-group">
+                <label htmlFor="phone">Phone Number *</label>
+                <input id="phone" name="phone" type="tel" placeholder="(555) 123-4567" value={form.phone} onChange={handleInputChange} className={errors.phone?'error':''} />
+                {errors.phone && <span className="field-error">{errors.phone}</span>}
+              </div>
+              {submitError && <div className="submit-error">{submitError}</div>}
+              <button type="submit" className="submit-btn">Confirm Booking</button>
+            </form>
+          </div>
+        )}
+
+        {step === 4 && submittedRecord && (
+          <div className="confirmation">
+            <div className="confirm-icon">&#10003;</div>
+            <h3>Thank You!</h3>
+            <p>Your meeting has been booked successfully.</p>
+            <div className="confirm-details">
+              <div className="confirm-row"><span className="confirm-label">Name</span><span>{submittedRecord.name}</span></div>
+              <div className="confirm-row"><span className="confirm-label">Email</span><span>{submittedRecord.email}</span></div>
+              <div className="confirm-row"><span className="confirm-label">Company</span><span>{submittedRecord.company}</span></div>
+              <div className="confirm-row"><span className="confirm-label">Date</span><span>{submittedRecord.meetingDate}</span></div>
+              <div className="confirm-row"><span className="confirm-label">Time</span><span>{formatTimeDisplay(submittedRecord.meetingTime)} ET</span></div>
+              <div className="confirm-row"><span className="confirm-label">Duration</span><span>30 minutes</span></div>
+            </div>
+            <p className="confirm-note">A confirmation email will be sent to {submittedRecord.email}.</p>
+            <button className="submit-btn" onClick={handleReset}>Book Another Meeting</button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <p>&copy; {new Date().getFullYear()} TPA LLC. All rights reserved.</p>
+    </footer>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Header />
+      <Hero />
+      <BookingSection />
+      <Footer />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
